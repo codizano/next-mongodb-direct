@@ -4,47 +4,59 @@ import { addConsumo } from "../../utils/consumoAction";
 
 export default function Home() {
   const formRef = useRef<HTMLFormElement>(null);
+  const [fecha, setFecha] = useState<string>("");
+  const [descripcion, setDescripcion] = useState<string>("");
+  const [monto, setMonto] = useState<string>("");
   const [fechaError, setFechaError] = useState<string | null>(null);
   const [montoError, setMontoError] = useState<string | null>(null);
   const [descripcionError, setDescripcionError] = useState<string | null>(null);
 
+  const resetForm = () => {
+    setFecha("");
+    setDescripcion("");
+    setMonto("");
+    setFechaError(null);
+    setMontoError(null);
+    setDescripcionError(null);
+  };
+
   const handleSubmit = async (formData: FormData) => {
-    const fecha = formData.get("fecha") as string;
-    const descripcion = formData.get("descripcion") as string;
-    const monto = formData.get("monto") as string;
+    const fechaValue = formData.get("fecha") as string;
+    const descripcionValue = formData.get("descripcion") as string;
+    const montoValue = formData.get("monto") as string;
 
     // Validate fecha
-    if (!fecha || fecha.length === 0) {
+    if (!fechaValue || fechaValue.length === 0) {
       setFechaError("Fecha es requerida");
       return; // Prevent form submission
     }
 
     // Validate monto
-    if (!monto || isNaN(parseFloat(monto))) {
+    if (!montoValue || isNaN(parseFloat(montoValue))) {
       setMontoError("Monto debe ser un número válido");
       return; // Prevent form submission
     }
 
     // Validate descripcion
-    if (!descripcion || descripcion.length === 0) {
+    if (!descripcionValue || descripcionValue.length === 0) {
       setDescripcionError("Descripción es requerida");
       return; // Prevent form submission
     }
 
-    setFechaError(null); // Clear any previous error
-    setMontoError(null); // Clear any previous error
-    setDescripcionError(null); // Clear any previous error
+    setFechaError(null);
+    setMontoError(null);
+    setDescripcionError(null);
 
     const result = await addConsumo(formData);
     if (result.success) {
-      formRef.current?.reset();
+      resetForm();
     } else {
       console.error(result.error);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
+    <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
       <form ref={formRef} action={handleSubmit} className="space-y-6">
         <div>
           <label
@@ -57,7 +69,11 @@ export default function Home() {
             id="fecha"
             name="fecha"
             type="date"
-            onChange={() => setFechaError(null)}
+            value={fecha}
+            onChange={(e) => {
+              setFecha(e.target.value);
+              setFechaError(null);
+            }}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
           />
           {fechaError && (
@@ -75,7 +91,11 @@ export default function Home() {
             id="descripcion"
             name="descripcion"
             rows={3}
-            onChange={() => setDescripcionError(null)}
+            value={descripcion}
+            onChange={(e) => {
+              setDescripcion(e.target.value);
+              setDescripcionError(null);
+            }}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
           />
           {descripcionError && (
@@ -93,7 +113,11 @@ export default function Home() {
             id="monto"
             name="monto"
             type="number"
-            onChange={() => setMontoError(null)}
+            value={monto}
+            onChange={(e) => {
+              setMonto(e.target.value);
+              setMontoError(null);
+            }}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
           />
           {montoError && (
@@ -102,7 +126,7 @@ export default function Home() {
         </div>
         <button
           type="submit"
-          className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="w-full px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
           Guardar gasto
         </button>

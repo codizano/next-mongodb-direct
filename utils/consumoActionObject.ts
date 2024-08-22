@@ -1,3 +1,4 @@
+//Este ejemplo acepta obeto directamente
 "use server";
 
 import dbConnect from "../lib/dbConnect";
@@ -10,24 +11,31 @@ interface ConsumoData {
 }
 
 const addConsumo = async (
-  data: FormData
+  data: ConsumoData | FormData
 ): Promise<{ success: boolean; gasto?: ConsumoData; error?: string }> => {
   try {
     await dbConnect();
 
-    const fecha = data.get("fecha") as string;
-    const descripcion = data.get("descripcion") as string;
-    const monto = Number(data.get("monto"));
+    let consumoData: ConsumoData;
+    if (data instanceof FormData) {
+      const fecha = data.get("fecha") as string;
+      const descripcion = data.get("descripcion") as string;
+      const monto = Number(data.get("monto"));
 
-    if (!fecha || !descripcion || isNaN(monto)) {
-      throw new Error("Fecha, descripcion y monto son requeridos");
+      if (!fecha || !descripcion || isNaN(monto)) {
+        throw new Error("Fecha, descripcion y monto son requeridos");
+      }
+
+      consumoData = { fecha, descripcion, monto };
+    } else {
+      consumoData = data;
     }
-
-    const consumoData: ConsumoData = { fecha, descripcion, monto };
 
     const newConsumo = new Consumo(consumoData);
     const savedConsumo = await newConsumo.save();
 
+    // Convert the Mongoose document to a plain JavaScript object
+    // and only include the fields we want
     const plainGasto: ConsumoData = {
       fecha: savedConsumo.fecha,
       descripcion: savedConsumo.descripcion,

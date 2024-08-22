@@ -10,31 +10,36 @@ interface ConsumoData {
 }
 
 const addConsumo = async (
-  data: FormData
+  data: ConsumoData | FormData
 ): Promise<{ success: boolean; gasto?: ConsumoData; error?: string }> => {
   try {
     await dbConnect();
 
-    const fecha = data.get("fecha") as string;
-    const descripcion = data.get("descripcion") as string;
-    const monto = Number(data.get("monto"));
+    let fecha: string, descripcion: string, monto: number;
+    if (data instanceof FormData) {
+      fecha = data.get("fecha") as string;
+      descripcion = data.get("descripcion") as string;
+      monto = Number(data.get("monto"));
+    } else {
+      ({ fecha, descripcion, monto } = data);
+    }
 
-    if (!fecha || !descripcion || isNaN(monto)) {
+    if (!fecha || !descripcion || !monto) {
       throw new Error("Fecha, descripcion y monto son requeridos");
     }
 
-    const consumoData: ConsumoData = { fecha, descripcion, monto };
-
-    const newConsumo = new Consumo(consumoData);
+    const newConsumo = new Consumo({ fecha, descripcion, monto });
     const savedConsumo = await newConsumo.save();
 
-    const plainGasto: ConsumoData = {
+    // Convertir a un objeto plano y seleccionar solo los campos que necesitamos
+    const plainConsumo: ConsumoData = {
       fecha: savedConsumo.fecha,
       descripcion: savedConsumo.descripcion,
       monto: savedConsumo.monto,
+      // Agrega aquí cualquier otro campo que necesites
     };
 
-    return { success: true, gasto: plainGasto };
+    return { success: true, gasto: plainConsumo };
   } catch (error: any) {
     console.error("Error al añadir gasto:", error);
     return { success: false, error: error.message };
